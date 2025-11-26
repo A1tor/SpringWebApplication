@@ -1,3 +1,19 @@
 package com.aitor.springwebapplication.model;
 
-public record Message(long id, long issueId, String content) {}
+import jakarta.persistence.*;
+import lombok.*;
+
+@Data
+@Entity
+@NoArgsConstructor
+@RequiredArgsConstructor
+@Table(name = "tbl_message")
+public class Message {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    @NonNull
+    private Long issueId;
+    @NonNull
+    private String content;
+}
