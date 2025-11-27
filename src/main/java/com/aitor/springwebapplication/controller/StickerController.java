@@ -1,8 +1,8 @@
 package com.aitor.springwebapplication.controller;
 
-import com.aitor.springwebapplication.dto.UserRequestTo;
-import com.aitor.springwebapplication.dto.UserResponseTo;
-import com.aitor.springwebapplication.service.UserService;
+import com.aitor.springwebapplication.dto.StickerRequestTo;
+import com.aitor.springwebapplication.dto.StickerResponseTo;
+import com.aitor.springwebapplication.service.StickerService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
@@ -13,32 +13,31 @@ import java.util.List;
 @Validated
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("users")
-public class UserController {
-    private final UserService service;
+@RequestMapping("stickers")
+class StickerController {
+    private final StickerService service;
 
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping()
-    public UserResponseTo add(@RequestBody UserRequestTo request){
+    public StickerResponseTo add(@RequestBody StickerRequestTo request){
         return service.add(request);
     }
 
     @PutMapping("/{id}")
-    public UserResponseTo set(@RequestBody UserRequestTo request){
+    public StickerResponseTo set(@RequestBody StickerRequestTo request){
         return service.add(request);
     }
 
     @GetMapping("/{id}")
-    public UserResponseTo get(@PathVariable Long id){
+    public StickerResponseTo get(@PathVariable Long id){
         return service.get(id);
     }
 
     @GetMapping()
-    public List<UserResponseTo> getAll(){
+    public List<StickerResponseTo> getAll(){
         return service.getAll();
     }
 
-    @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("/{id}")
     public void remove(@PathVariable Long id){
         service.remove(id);

@@ -1,8 +1,8 @@
 package com.aitor.springwebapplication.controller;
 
-import com.aitor.springwebapplication.dto.UserRequestTo;
-import com.aitor.springwebapplication.dto.UserResponseTo;
-import com.aitor.springwebapplication.service.UserService;
+import com.aitor.springwebapplication.dto.MessageRequestTo;
+import com.aitor.springwebapplication.dto.MessageResponseTo;
+import com.aitor.springwebapplication.service.MessageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
@@ -13,32 +13,31 @@ import java.util.List;
 @Validated
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("users")
-public class UserController {
-    private final UserService service;
+@RequestMapping("messages")
+public class MessageController {
+    private final MessageService service;
 
     @ResponseStatus(HttpStatus.CREATED)
-    @PostMapping()
-    public UserResponseTo add(@RequestBody UserRequestTo request){
+    @PostMapping
+    public MessageResponseTo add(@RequestBody MessageRequestTo request){
         return service.add(request);
     }
 
     @PutMapping("/{id}")
-    public UserResponseTo set(@RequestBody UserRequestTo request){
+    public MessageResponseTo set(@RequestBody MessageRequestTo request){
         return service.add(request);
     }
 
     @GetMapping("/{id}")
-    public UserResponseTo get(@PathVariable Long id){
+    public MessageResponseTo get(@PathVariable Long id){
         return service.get(id);
     }
 
-    @GetMapping()
-    public List<UserResponseTo> getAll(){
+    @GetMapping
+    public List<MessageResponseTo> getAll(){
         return service.getAll();
     }
 
-    @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("/{id}")
     public void remove(@PathVariable Long id){
         service.remove(id);
