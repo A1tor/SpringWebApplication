@@ -2,13 +2,13 @@ package com.aitor.springwebapplication.service;
 
 import com.aitor.springwebapplication.dto.StickerRequestTo;
 import com.aitor.springwebapplication.dto.StickerResponseTo;
+import com.aitor.springwebapplication.exception.EntityNotExistsException;
 import com.aitor.springwebapplication.model.Sticker;
 import com.aitor.springwebapplication.repository.StickerRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -37,12 +37,22 @@ public class StickerService {
                         .collect(Collectors.toList());
     }
 
-    public void remove(Long id){
-        repository.deleteById(id);
+    public StickerResponseTo remove(Long id) {
+        var entityOptional = repository.findById(id);
+        if (entityOptional.isPresent()) {
+            var entity = entityOptional.get();
+            var response = toResponse(entity);
+            repository.delete(entity);
+            return response;
+        } else
+            throw new EntityNotExistsException();
     }
 
     private Sticker getEntity(Long id){
-        return repository.findById(id).get();
+        var entity = repository.findById(id);
+        if (entity.isPresent())
+            return entity.get();
+        throw new EntityNotExistsException();
     }
 
     private StickerResponseTo toResponse(Sticker entity){

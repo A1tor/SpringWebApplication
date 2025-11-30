@@ -2,6 +2,7 @@ package com.aitor.springwebapplication.service;
 
 import com.aitor.springwebapplication.dto.UserRequestTo;
 import com.aitor.springwebapplication.dto.UserResponseTo;
+import com.aitor.springwebapplication.exception.EntityNotExistsException;
 import com.aitor.springwebapplication.model.User;
 import com.aitor.springwebapplication.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -43,12 +44,22 @@ public class UserService {
                         .collect(Collectors.toList());
     }
 
-    public void remove(Long id){
-        repository.deleteById(id);
+    public UserResponseTo remove(Long id) {
+        var entityOptional = repository.findById(id);
+        if (entityOptional.isPresent()) {
+            var entity = entityOptional.get();
+            var response = toResponse(entity);
+            repository.delete(entity);
+            return response;
+        } else
+            throw new EntityNotExistsException();
     }
 
     private User getEntity(Long id){
-        return repository.findById(id).get();
+        var entity = repository.findById(id);
+        if (entity.isPresent())
+            return entity.get();
+        throw new EntityNotExistsException();
     }
 
     private UserResponseTo toResponse(User entity){

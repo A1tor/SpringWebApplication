@@ -2,8 +2,11 @@ package com.aitor.springwebapplication.service;
 
 import com.aitor.springwebapplication.dto.IssueRequestTo;
 import com.aitor.springwebapplication.dto.IssueResponseTo;
+import com.aitor.springwebapplication.exception.EntityNotExistsException;
 import com.aitor.springwebapplication.model.Issue;
+import com.aitor.springwebapplication.model.User;
 import com.aitor.springwebapplication.repository.IssueRepository;
+import com.aitor.springwebapplication.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -15,10 +18,11 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class IssueService {
     private final IssueRepository repository;
+    private final UserRepository userRepository;
 
     public IssueResponseTo add(IssueRequestTo requestBody){
         Issue persisted = repository.save(new Issue(
-                requestBody.getUserId(),
+                getUser(requestBody.getUserId()),
                 requestBody.getTitle(),
                 requestBody.getContent(),
                 LocalDateTime.now(),
@@ -28,8 +32,8 @@ public class IssueService {
 
     public IssueResponseTo set(Long id, IssueRequestTo requestBody){
         var entity = getEntity(id);
-        entity.setUserId(requestBody.getUserId());
-        entity.setTitle(requestBody.getContent());
+        entity.setUserId(getUser(requestBody.getUserId()));
+        entity.setTitle(requestBody.getTitle());
         entity.setContent(requestBody.getContent());
         entity.setModified(LocalDateTime.now());
         return toResponse(repository.save(entity));
@@ -45,18 +49,35 @@ public class IssueService {
                         .collect(Collectors.toList());
     }
 
-    public void remove(Long id){
-        repository.deleteById(id);
+    public IssueResponseTo remove(Long id) {
+        var entityOptional = repository.findById(id);
+        if (entityOptional.isPresent()) {
+            var entity = entityOptional.get();
+            var response = toResponse(entity);
+            repository.delete(entity);
+            return response;
+        } else
+            throw new EntityNotExistsException();
     }
 
     private Issue getEntity(Long id){
-        return repository.findById(id).get();
+        var entity = repository.findById(id);
+        if (entity.isPresent())
+            return entity.get();
+        throw new EntityNotExistsException();
+    }
+
+    private User getUser(Long id){
+        var entity = userRepository.findById(id);
+        if (entity.isPresent())
+            return entity.get();
+        throw new EntityNotExistsException();
     }
 
     private IssueResponseTo toResponse(Issue entity){
         return new IssueResponseTo(
                 entity.getId(),
-                entity.getUserId(),
+                entity.getUserId().getId(),
                 entity.getTitle(),
                 entity.getContent(),
                 entity.getCreated(),
