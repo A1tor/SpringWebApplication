@@ -11,7 +11,8 @@ import lombok.*;
 public class Sticker {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    Long id;
     @NonNull
-    private String name;
+    @Column(unique = true, nullable = false)
+    String name;
 }

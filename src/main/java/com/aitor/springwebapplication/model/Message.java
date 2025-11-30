@@ -11,9 +11,11 @@ import lombok.*;
 public class Message {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    Long id;
     @NonNull
-    private Long issueId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "issue_id", nullable = false)
+    Issue issueId;
     @NonNull
-    private String content;
+    String content;
 }

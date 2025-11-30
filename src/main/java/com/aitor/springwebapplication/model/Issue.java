@@ -13,15 +13,18 @@ import java.time.LocalDateTime;
 public class Issue {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    Long id;
     @NonNull
-    private Long userId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    User userId;
     @NonNull
-    private String title;
+    @Column(unique = true, nullable = false)
+    String title;
     @NonNull
-    private String content;
+    String content;
     @NonNull
-    private LocalDateTime created;
+    LocalDateTime created;
     @NonNull
-    private LocalDateTime modified;
+    LocalDateTime modified;
 }

@@ -11,8 +11,9 @@ import lombok.*;
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    Long id;
     @NonNull
+    @Column(unique = true, nullable = false)
     String login;
     @NonNull
     String password;
