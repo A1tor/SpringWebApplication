@@ -23,9 +23,7 @@ public class IssueRequestTo {
     @Size(min = 4, max = 2048, message = "Content must be between 4 and 2048 characters")
     private String content;
 
-    @NotBlank(message = "Created is required")
     private String created;
 
-    @NotBlank(message = "Modified is required")
     private String modified;
 }
