@@ -2,8 +2,9 @@ package com.aitor.springwebapplication.dto;
 
 import jakarta.validation.constraints.*;
 import lombok.*;
+import org.springframework.lang.Nullable;
 
-import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @Setter
@@ -26,4 +27,6 @@ public class IssueRequestTo {
     private String created;
 
     private String modified;
+
+    private List<String> stickers;
 }

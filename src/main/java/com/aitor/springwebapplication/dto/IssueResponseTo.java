@@ -2,6 +2,8 @@ package com.aitor.springwebapplication.dto;
 
 import lombok.*;
 import java.time.LocalDateTime;
+import java.util.LinkedList;
+import java.util.List;
 
 @Getter
 @AllArgsConstructor
@@ -12,4 +14,5 @@ public class IssueResponseTo {
     private String content;
     private LocalDateTime created;
     private LocalDateTime modified;
+    private List<String> stickers;
 }
