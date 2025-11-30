@@ -3,6 +3,7 @@ package com.aitor.springwebapplication.controller;
 import com.aitor.springwebapplication.dto.MessageRequestTo;
 import com.aitor.springwebapplication.dto.MessageResponseTo;
 import com.aitor.springwebapplication.service.MessageService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
@@ -19,13 +20,13 @@ public class MessageController {
 
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping
-    public MessageResponseTo add(@RequestBody MessageRequestTo request){
+    public MessageResponseTo add(@RequestBody @Valid MessageRequestTo request){
         return service.add(request);
     }
 
     @PutMapping("/{id}")
-    public MessageResponseTo set(@RequestBody MessageRequestTo request){
-        return service.add(request);
+    public MessageResponseTo set(@PathVariable Long id, @RequestBody @Valid MessageRequestTo request){
+        return service.set(id, request);
     }
 
     @GetMapping("/{id}")
@@ -38,8 +39,9 @@ public class MessageController {
         return service.getAll();
     }
 
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("/{id}")
-    public void remove(@PathVariable Long id){
-        service.remove(id);
+    public MessageResponseTo remove(@PathVariable Long id){
+        return service.remove(id);
     }
 }

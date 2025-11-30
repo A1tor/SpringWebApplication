@@ -3,6 +3,7 @@ package com.aitor.springwebapplication.controller;
 import com.aitor.springwebapplication.dto.IssueRequestTo;
 import com.aitor.springwebapplication.dto.IssueResponseTo;
 import com.aitor.springwebapplication.service.IssueService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
@@ -19,13 +20,13 @@ public class IssueController {
 
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping()
-    public IssueResponseTo add(@RequestBody IssueRequestTo request){
+    public IssueResponseTo add(@RequestBody @Valid IssueRequestTo request){
         return service.add(request);
     }
 
     @PutMapping("/{id}")
-    public IssueResponseTo set(@RequestBody IssueRequestTo request){
-        return service.add(request);
+    public IssueResponseTo set(@PathVariable Long id, @RequestBody @Valid IssueRequestTo request){
+        return service.set(id, request);
     }
 
     @GetMapping("/{id}")
@@ -38,8 +39,9 @@ public class IssueController {
         return service.getAll();
     }
 
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("/{id}")
-    public void remove(@PathVariable Long id){
-        service.remove(id);
+    public IssueResponseTo remove(@PathVariable Long id){
+        return service.remove(id);
     }
 }

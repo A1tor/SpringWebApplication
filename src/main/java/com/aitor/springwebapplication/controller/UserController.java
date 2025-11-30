@@ -3,6 +3,7 @@ package com.aitor.springwebapplication.controller;
 import com.aitor.springwebapplication.dto.UserRequestTo;
 import com.aitor.springwebapplication.dto.UserResponseTo;
 import com.aitor.springwebapplication.service.UserService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
@@ -19,13 +20,13 @@ public class UserController {
 
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping()
-    public UserResponseTo add(@RequestBody UserRequestTo request){
+    public UserResponseTo add(@RequestBody @Valid UserRequestTo request){
         return service.add(request);
     }
 
     @PutMapping("/{id}")
-    public UserResponseTo set(@RequestBody UserRequestTo request){
-        return service.add(request);
+    public UserResponseTo set(@PathVariable Long id, @RequestBody @Valid UserRequestTo request){
+        return service.set(id, request);
     }
 
     @GetMapping("/{id}")
@@ -40,7 +41,7 @@ public class UserController {
 
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("/{id}")
-    public void remove(@PathVariable Long id){
-        service.remove(id);
+    public UserResponseTo remove(@PathVariable Long id){
+        return service.remove(id);
     }
 }
