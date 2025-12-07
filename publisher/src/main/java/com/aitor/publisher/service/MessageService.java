@@ -3,75 +3,88 @@ package com.aitor.publisher.service;
 import com.aitor.publisher.dto.MessageRequestTo;
 import com.aitor.publisher.dto.MessageResponseTo;
 import com.aitor.publisher.exception.EntityNotExistsException;
-import com.aitor.publisher.model.Issue;
-import com.aitor.publisher.model.Message;
 import com.aitor.publisher.repository.IssueRepository;
-import com.aitor.publisher.repository.MessageRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class MessageService {
-    private final MessageRepository repository;
+    private static final String BASE_URL = "http://localhost:24130/api/v1.0/messages";
     private final IssueRepository issueRepository;
 
     public MessageResponseTo add(MessageRequestTo requestBody){
-        Message persisted = repository.save(new Message(
-                getIssue(requestBody.getIssueId()),
-                requestBody.getContent()));
-        return toResponse(persisted);
+        var message = new MessageRequestTo();
+        message.setIssueId(getIssue(requestBody.getIssueId()));
+        message.setContent(requestBody.getContent());
+        var headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        var response = new RestTemplate().postForEntity(
+                BASE_URL,
+                new HttpEntity<>(message, headers),
+                MessageResponseTo.class
+        );
+        return response.getBody();
     }
 
     public MessageResponseTo set(Long id, MessageRequestTo requestBody){
-        var entity = getEntity(id);
-        entity.setIssueId(getIssue(requestBody.getIssueId()));
-        entity.setContent(requestBody.getContent());
-        return toResponse(repository.save(entity));
+        var message = new MessageRequestTo(requestBody.getId(), getIssue(requestBody.getIssueId()), requestBody.getContent());
+        var headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        var response = new RestTemplate().exchange(
+                String.format("%s/%d", BASE_URL, id),
+                HttpMethod.PUT,
+                new HttpEntity<>(message, headers),
+                MessageResponseTo.class
+        );
+        return response.getBody();
     }
 
     public MessageResponseTo get(Long id) {
-        return toResponse(getEntity(id));
+        var headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        var response = new RestTemplate().getForEntity(
+                String.format("%s/%d", BASE_URL, id),
+                MessageResponseTo.class
+        );
+        return response.getBody();
     }
 
     public List<MessageResponseTo> getAll(){
-        return repository.findAll().stream()
-                        .map(this::toResponse)
-                        .collect(Collectors.toList());
+        var headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        var response = new RestTemplate().getForEntity(
+                BASE_URL,
+                List.class
+        );
+        return response.getBody();
     }
 
     public MessageResponseTo remove(Long id) {
-        var entityOptional = repository.findById(id);
-        if (entityOptional.isPresent()) {
-            var entity = entityOptional.get();
-            var response = toResponse(entity);
-            repository.delete(entity);
-            return response;
-        } else
+        try {
+            var response = new RestTemplate().exchange(
+                    String.format("%s/%d", BASE_URL, id),
+                    HttpMethod.DELETE,
+                    null,
+                    MessageResponseTo.class
+            );
+            return response.getBody();
+        } catch (Exception e) {
             throw new EntityNotExistsException();
+        }
     }
 
-    private Message getEntity(Long id){
-        var entity = repository.findById(id);
-        if (entity.isPresent())
-            return entity.get();
-        throw new EntityNotExistsException();
-    }
-
-    private Issue getIssue(Long id){
+    private Long getIssue(Long id){
         var entity = issueRepository.findById(id);
         if (entity.isPresent())
-            return entity.get();
+            return id;
         throw new EntityNotExistsException();
-    }
-
-    private MessageResponseTo toResponse(Message entity){
-        return new MessageResponseTo(
-                entity.getId(),
-                entity.getIssueId().getId(),
-                entity.getContent());
     }
 }

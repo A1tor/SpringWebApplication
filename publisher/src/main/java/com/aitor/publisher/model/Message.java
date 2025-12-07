@@ -1,6 +1,5 @@
 package com.aitor.publisher.model;
 
-import com.aitor.publisher.model.Issue;
 import jakarta.persistence.*;
 import lombok.*;
 
