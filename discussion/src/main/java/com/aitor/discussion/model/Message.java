@@ -1,14 +1,17 @@
 package com.aitor.discussion.model;
 
 import lombok.*;
-import org.springframework.data.cassandra.core.cql.PrimaryKeyType;
+import org.springframework.data.annotation.Transient;
 import org.springframework.data.cassandra.core.mapping.*;
 
-@Getter
-@Setter
+@Data
+@ToString
 @NoArgsConstructor
 @Table(value = "tbl_message", keyspace = "distcomp")
 public class Message {
+    public enum Status {
+        PENDING, APPROVE, DELCINE
+    }
 
     static private long curIndex = 0;
 
@@ -20,6 +23,9 @@ public class Message {
 
     @Column
     String content;
+
+    @Column
+    Status status = Status.PENDING;
 
     public Message(Long issueId, String content){
         id = ++curIndex;

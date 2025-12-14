@@ -3,88 +3,108 @@ package com.aitor.publisher.service;
 import com.aitor.publisher.dto.MessageRequestTo;
 import com.aitor.publisher.dto.MessageResponseTo;
 import com.aitor.publisher.exception.EntityNotExistsException;
+import com.aitor.publisher.kafka.KafkaConsumerService;
+import com.aitor.publisher.kafka.KafkaProducerService;
+import com.aitor.publisher.model.Issue;
+import com.aitor.publisher.model.Message;
 import com.aitor.publisher.repository.IssueRepository;
+import com.aitor.publisher.repository.MessageRepository;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.*;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.TimeoutException;
 
 @Service
 @RequiredArgsConstructor
 public class MessageService {
-    private static final String BASE_URL = "http://localhost:24130/api/v1.0/messages";
+    private final MessageRepository repository;
     private final IssueRepository issueRepository;
+    private final KafkaProducerService kafkaProducerService;
+    private final KafkaConsumerService kafkaConsumerService;
 
     public MessageResponseTo add(MessageRequestTo requestBody){
-        var message = new MessageRequestTo();
-        message.setIssueId(getIssue(requestBody.getIssueId()));
-        message.setContent(requestBody.getContent());
-        var headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-
-        var response = new RestTemplate().postForEntity(
-                BASE_URL,
-                new HttpEntity<>(message, headers),
-                MessageResponseTo.class
-        );
-        return response.getBody();
-    }
-
-    public MessageResponseTo set(Long id, MessageRequestTo requestBody){
-        var message = new MessageRequestTo(requestBody.getId(), getIssue(requestBody.getIssueId()), requestBody.getContent());
-        var headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        var response = new RestTemplate().exchange(
-                String.format("%s/%d", BASE_URL, id),
-                HttpMethod.PUT,
-                new HttpEntity<>(message, headers),
-                MessageResponseTo.class
-        );
-        return response.getBody();
-    }
-
-    public MessageResponseTo get(Long id) {
-        var headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-
-        var response = new RestTemplate().getForEntity(
-                String.format("%s/%d", BASE_URL, id),
-                MessageResponseTo.class
-        );
-        return response.getBody();
-    }
-
-    public List<MessageResponseTo> getAll(){
-        var headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-
-        var response = new RestTemplate().getForEntity(
-                BASE_URL,
-                List.class
-        );
-        return response.getBody();
-    }
-
-    public MessageResponseTo remove(Long id) {
+        getIssue(requestBody);
+        var key = "P";
+        kafkaProducerService.sendMessage(requestBody, key);
         try {
-            var response = new RestTemplate().exchange(
-                    String.format("%s/%d", BASE_URL, id),
-                    HttpMethod.DELETE,
-                    null,
-                    MessageResponseTo.class
-            );
-            return response.getBody();
-        } catch (Exception e) {
-            throw new EntityNotExistsException();
+            return convertResponse(kafkaConsumerService.waitForResponse(key));
+        } catch (TimeoutException e) {
+            throw new RuntimeException(e);
         }
     }
 
-    private Long getIssue(Long id){
-        var entity = issueRepository.findById(id);
+    public MessageResponseTo set(Long id, MessageRequestTo requestBody){
+        getIssue(requestBody);
+        var key = "U".concat(id.toString());
+        kafkaProducerService.sendMessage(requestBody, key);
+        try {
+            return convertResponse(kafkaConsumerService.waitForResponse(key));
+        } catch (TimeoutException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public MessageResponseTo get(Long id) {
+        var key = id.toString();
+        kafkaProducerService.sendMessage(key);
+        try {
+            return convertResponse(kafkaConsumerService.waitForResponse(key));
+        } catch (TimeoutException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public List<MessageResponseTo> getAll(){
+        var key = "G";
+        kafkaProducerService.sendMessage(key);
+        try {
+            return kafkaConsumerService.waitForResponse(key);
+        } catch (TimeoutException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public MessageResponseTo remove(Long id) {
+        var key = "D".concat(id.toString());
+        kafkaProducerService.sendMessage(key);
+        try {
+            return convertResponse(kafkaConsumerService.waitForResponse(key));
+        } catch (TimeoutException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private MessageResponseTo convertResponse(List<MessageResponseTo> responseList){
+        ObjectMapper mapper = new ObjectMapper();
+        if (responseList.getFirst() instanceof Map) {
+            var response = mapper.convertValue(responseList.getFirst(), MessageResponseTo.class);
+            if (response.getId() == null)
+                throw new EntityNotExistsException();
+            return response;
+        } else {
+            try {
+                return mapper.readValue(responseList.getFirst().toString(), MessageResponseTo.class);
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    private Issue getIssue(MessageRequestTo requestBody){
+        var entity = issueRepository.findById(requestBody.getIssueId());
         if (entity.isPresent())
-            return id;
+            return entity.get();
         throw new EntityNotExistsException();
+    }
+
+    private MessageResponseTo toResponse(Message entity){
+        return new MessageResponseTo(
+                entity.getId(),
+                entity.getIssueId().getId(),
+                entity.getContent());
     }
 }

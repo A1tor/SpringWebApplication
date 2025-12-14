@@ -3,9 +3,10 @@ package com.aitor.publisher.dto;
 import lombok.*;
 
 @Getter
+@NoArgsConstructor
 @AllArgsConstructor
 public class MessageResponseTo {
-    private long id;
-    private long issueId;
+    private Long id;
+    private Long issueId;
     private String content;
 }

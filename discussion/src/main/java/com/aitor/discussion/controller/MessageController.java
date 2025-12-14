@@ -1,8 +1,8 @@
 package com.aitor.discussion.controller;
 
-import com.aitor.discussion.dto.MessageRequestTo;
+import com.aitor.publisher.dto.MessageRequestTo;
 import com.aitor.discussion.service.MessageService;
-import com.aitor.discussion.dto.MessageResponseTo;
+import com.aitor.publisher.dto.MessageResponseTo;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

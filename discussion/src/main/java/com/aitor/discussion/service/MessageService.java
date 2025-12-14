@@ -1,7 +1,7 @@
 package com.aitor.discussion.service;
 
-import com.aitor.discussion.dto.MessageRequestTo;
-import com.aitor.discussion.dto.MessageResponseTo;
+import com.aitor.publisher.dto.MessageRequestTo;
+import com.aitor.publisher.dto.MessageResponseTo;
 import com.aitor.discussion.model.Message;
 import com.aitor.discussion.repository.MessageRepository;
 import com.aitor.publisher.exception.EntityNotExistsException;
@@ -18,7 +18,11 @@ public class MessageService {
     private final MessageRepository repository;
 
     public MessageResponseTo add(MessageRequestTo requestBody) {
-        Message persisted = repository.save(new Message(requestBody.getIssueId(), requestBody.getContent()));
+        var message = new Message(requestBody.getIssueId(), requestBody.getContent());
+        message.setStatus(message.getContent().toLowerCase().contains("panzerkampf") ?
+                Message.Status.DELCINE :
+                Message.Status.APPROVE);
+        Message persisted = repository.save(message);
         return toResponse(persisted);
     }
 
