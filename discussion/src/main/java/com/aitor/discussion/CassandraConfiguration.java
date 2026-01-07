@@ -1,7 +1,5 @@
 package com.aitor.discussion;
 
-import org.springframework.boot.jdbc.DataSourceBuilder;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.cassandra.config.AbstractCassandraConfiguration;
@@ -11,7 +9,6 @@ import org.springframework.data.cassandra.core.cql.keyspace.DataCenterReplicatio
 import org.springframework.data.cassandra.core.cql.keyspace.KeyspaceOption;
 import org.springframework.data.cassandra.core.cql.keyspace.SpecificationBuilder;
 
-import javax.sql.DataSource;
 import java.util.List;
 
 @Configuration
